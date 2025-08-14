@@ -90,7 +90,7 @@ export function Navbar({ title, breadcrumbs }: NavbarProps) {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-6">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background">
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-2 h-4" />
 

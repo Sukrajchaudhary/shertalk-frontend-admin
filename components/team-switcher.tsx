@@ -1,7 +1,5 @@
 "use client";
-
 import * as React from "react";
-import { ChevronsUpDown } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -22,9 +20,9 @@ export function TeamSwitcher({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton size="lg" className="hover:bg-green-200">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-green-600 text-sidebar-primary-foreground">
-            <activeTeam.logo className="size-4 text-white" />
+        <SidebarMenuButton size="lg">
+          <div className="flex aspect-square size-8 items-center bg-[#817f8b] justify-center rounded-lg  text-sidebar-primary-foreground">
+            <activeTeam.logo className="size-4 text-white " />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold text-green-800">
@@ -34,7 +32,6 @@ export function TeamSwitcher({
               {activeTeam.plan}
             </span>
           </div>
-          <ChevronsUpDown className="ml-auto text-green-600" />
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
