@@ -2,22 +2,20 @@
 
 import type * as React from "react";
 import {
-  AudioWaveform,
-  Command,
   Frame,
   GalleryVerticalEnd,
   Map,
   PieChart,
   Users,
-  Home,
   BarChart3,
   FileText,
-  Calendar,
+  LayoutDashboard,
   Mail,
+  ChartCandlestick,
+  Video,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
@@ -35,27 +33,18 @@ const data = {
   },
   teams: [
     {
-      name: "Admin Dashboard",
+      name: " Wellcome to Shertalks",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      plan: "Admin",
     },
-    {
-      name: "Analytics Corp",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Data Inc.",
-      logo: Command,
-      plan: "Free",
-    },
+
   ],
 
   navMain: [
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: Home,
+      icon: LayoutDashboard,
     },
     {
       title: "Analytics",
@@ -65,22 +54,27 @@ const data = {
     {
       title: "Portflio",
       url: "/dashboard/portflio",
-      icon: BarChart3,
+      icon:ChartCandlestick
     },
     {
       title: "Users",
       url: "/dashboard/users",
       icon: Users,
     },
+    // {
+    //   title: "Reports",
+    //   url: "/dashboard/reports",
+    //   icon: FileText,
+    // },
     {
-      title: "Reports",
-      url: "/dashboard/reports",
+      title: "Blogs",
+      url: "/dashboard/blog",
       icon: FileText,
     },
     {
       title: "Video",
       url: "/dashboard/calendar",
-      icon: Calendar,
+      icon:Video
     },
     {
       title: "Messages",
@@ -119,7 +113,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent className="bg-[#FAF9FB]">
         <NavMain items={data.navMain} />
-        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
