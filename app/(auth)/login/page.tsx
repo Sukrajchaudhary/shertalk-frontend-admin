@@ -23,11 +23,11 @@ import {
 } from "@/components/ui/form";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/lib/context/auth-context";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 const formSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address"),
+  username: z.string().min(1, "Email is required"),
   password: z
     .string()
     .min(1, "Password is required")
@@ -38,21 +38,44 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { setIsLoginedStatus } = useAuthContext();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
 
   async function onSubmit(values: any) {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log(values);
-    router.push("/dashboard");
-    setIsLoading(false);
+    try {
+      const response = await fetch(`/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(`${data.type}`, {
+          description: `${data.errors[0].detail}`,
+        });
+        return;
+      }
+      queryClient.invalidateQueries(["token"]);
+      setIsLoginedStatus(true);
+      toast.success("Login Successfully !");
+      router.push("/dashboard");
+    } catch (error) {
+      // Handle error
+    } finally {
+      setIsLoading(false);
+    }
   }
+
   //@ts-ignore
   const FloatingIcon = ({ Icon, className, delay = 0 }) => (
     <div
@@ -136,7 +159,7 @@ export default function LoginPage() {
                     {/* Email Field */}
                     <FormField
                       control={form.control}
-                      name="email"
+                      name="username"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
                           <FormLabel className="text-sm font-semibold text-gray-700">
@@ -145,18 +168,18 @@ export default function LoginPage() {
                           <FormControl>
                             <div className="relative group">
                               <Input
-                                type="email"
-                                placeholder="Enter your email"
+                                type="text"
+                                placeholder="Enter your username"
                                 className="w-full px-4 py-3 bg-white border-2 rounded-lg h-12 border-gray-200"
                                 {...field}
                               />
                             </div>
                           </FormControl>
                           <FormMessage className="text-sm text-red-500 flex items-center">
-                            {form.formState.errors.email?.message && (
+                            {form.formState.errors.username?.message && (
                               <>
                                 <span className="w-1 h-1 bg-red-500 rounded-full mr-2"></span>
-                                {form.formState.errors.email.message}
+                                {form.formState.errors.username.message}
                               </>
                             )}
                           </FormMessage>

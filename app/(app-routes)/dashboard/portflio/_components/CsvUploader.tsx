@@ -223,7 +223,7 @@ const CsvUploader: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="h-full p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

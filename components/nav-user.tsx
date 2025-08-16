@@ -1,7 +1,5 @@
 "use client"
-
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react"
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -13,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
-
+import { useAuthContext } from "@/lib/context/auth-context"
 export function NavUser({
   user,
 }: {
@@ -24,7 +22,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-
+  const {profileInfo}=useAuthContext()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -32,17 +30,17 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" className="data-[state=open]:bg-green-200 hover:bg-green-200">
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                <AvatarImage src={profileInfo?.profileUrl || "/placeholder.svg"} alt={profileInfo?.username||"profil"} />
                 <AvatarFallback className="rounded-lg bg-green-300 text-green-800">
-                  {user.name
+                  {profileInfo?.username
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold text-green-800">{user.name}</span>
-                <span className="truncate text-xs text-green-600">{user.email}</span>
+                <span className="truncate font-semibold text-green-800">{profileInfo.username}</span>
+                <span className="truncate text-xs text-green-600">{profileInfo.role}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4 text-green-600" />
             </SidebarMenuButton>
@@ -56,17 +54,17 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                  <AvatarImage src={profileInfo?.profileUrl || "/placeholder.svg"} alt={profileInfo?.username||"logo"} />
                   <AvatarFallback className="rounded-lg">
-                    {user.name
+                    {profileInfo?.username
                       .split(" ")
                       .map((n) => n[0])
                       .join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-semibold">{profileInfo?.username}</span>
+                  <span className="truncate text-xs">{profileInfo?.role}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

@@ -9,11 +9,11 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="">
       <AppSidebar />
       <SidebarInset>
         <Navbar />
-       <div className="p-6 h-auto bg-[#f6f2f9]">
+       <div className="p-6 h-full bg-[#f6f2f9]">
          {children}
        </div>
       </SidebarInset>

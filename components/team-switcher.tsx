@@ -5,33 +5,36 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Image from "next/image";
+import Link from "next/link";
 
-export function TeamSwitcher({
-  teams,
-}: {
-  teams: {
+export function TeamSwitcher({}: {
+  teams?: {
     name: string;
     logo: React.ElementType;
     plan: string;
   }[];
 }) {
-  const [activeTeam, setActiveTeam] = React.useState(teams[0]);
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton size="lg">
-          <div className="flex aspect-square size-8 items-center bg-[#817f8b] justify-center rounded-lg  text-sidebar-primary-foreground">
-            <activeTeam.logo className="size-4 text-white " />
-          </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold text-green-800">
-              {activeTeam.name}
-            </span>
-            <span className="truncate text-xs text-green-600">
-              {activeTeam.plan}
-            </span>
-          </div>
+          <Link href="/dashboard">
+            <div className="w-[150px] h-12 cursor-pointer">
+              <Image
+                style={{
+                  mixBlendMode: "multiply",
+                }}
+                src="/images/shertalklogo.jpg"
+                className="h-full w-full "
+                alt="logo"
+                height={500}
+                width={500}
+                unoptimized
+                priority
+              />
+            </div>
+          </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

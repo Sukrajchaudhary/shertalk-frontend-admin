@@ -46,11 +46,11 @@ const data = {
       url: "/dashboard",
       icon: LayoutDashboard,
     },
-    {
-      title: "Analytics",
-      url: "/dashboard/analytics",
-      icon: BarChart3,
-    },
+    // {
+    //   title: "Analytics",
+    //   url: "/dashboard/analytics",
+    //   icon: BarChart3,
+    // },
     {
       title: "Portflio",
       url: "/dashboard/portflio",
@@ -76,29 +76,13 @@ const data = {
       url: "/dashboard/calendar",
       icon:Video
     },
-    {
-      title: "Messages",
-      url: "/dashboard/messages",
-      icon: Mail,
-    },
+    // {
+    //   title: "Messages",
+    //   url: "/dashboard/messages",
+    //   icon: Mail,
+    // },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
+  
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

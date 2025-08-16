@@ -1,10 +1,12 @@
-"use client"
+"use client";
 import {
   createContext,
   useContext,
   ReactNode,
   useState,
   useEffect,
+  Dispatch,
+  SetStateAction,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,20 +14,28 @@ export interface Profileinfo {
   username: string;
   email: string;
   profileUrl: string;
+  id?: number;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  phone_number?: string | null;
 }
 
 interface AuthTypes {
   isLoginedStatus: boolean;
   profileInfo: Profileinfo;
+  setIsLoginedStatus: Dispatch<SetStateAction<boolean>>;
+  setProfileInfo: Dispatch<SetStateAction<Profileinfo>>;
+  isLoading: boolean;
+  error: any;
 }
-
-// API function to fetch auth data
+// API function to fetch auth data from existing endpoint
 const fetchAuthToken = async (): Promise<{
   isLoginedStatus: boolean;
   profileInfo: Profileinfo;
 }> => {
   try {
-    const response = await fetch("/gettoken", {
+    const response = await fetch("/api/getauthtoken", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -44,10 +54,14 @@ const fetchAuthToken = async (): Promise<{
         username: data.profileInfo?.username || "",
         email: data.profileInfo?.email || "",
         profileUrl: data.profileInfo?.profileUrl || "",
+        id: data.profileInfo?.id,
+        first_name: data.profileInfo?.first_name || "",
+        last_name: data.profileInfo?.last_name || "",
+        role: data.profileInfo?.role || "",
+        phone_number: data.profileInfo?.phone_number,
       },
     };
   } catch (error) {
-    console.error("Auth API error:", error);
     throw error;
   }
 };
@@ -59,6 +73,10 @@ const authContext = createContext<AuthTypes>({
     email: "",
     profileUrl: "",
   },
+  setIsLoginedStatus: () => {},
+  setProfileInfo: () => {},
+  isLoading: false,
+  error: null,
 });
 
 const useAuthContext = () => {
@@ -77,17 +95,13 @@ const AuthProvider = ({ children, enableQuery = true }: AuthProviderProps) => {
     email: "",
     profileUrl: "",
   });
-
-  // React Query
   const {
     data: queryData,
     isLoading,
     error,
-    refetch,
   } = useQuery({
-    queryKey: ["auth", "token"],
+    queryKey: ["token"],
     queryFn: fetchAuthToken,
-    enabled: enableQuery,
     staleTime: 5 * 60 * 1000,
     retry: 2,
     refetchOnWindowFocus: false,
@@ -104,6 +118,10 @@ const AuthProvider = ({ children, enableQuery = true }: AuthProviderProps) => {
   const contextValue: AuthTypes = {
     isLoginedStatus,
     profileInfo,
+    setIsLoginedStatus,
+    setProfileInfo,
+    isLoading,
+    error,
   };
 
   return (
