@@ -61,11 +61,12 @@ export default function RootLayout({
 
   // Helper function to get role badge variant
   const getRoleVariant = (role: string) => {
-    return role?.toLowerCase() === "admin" ? "default" : "secondary";
+    return role?.toLowerCase() === "super_admin" ? "default" : "secondary";
   };
+  
 
   return (
-    <div className="flex-1 space-y-4 p-4">
+    <div className="flex-1 space-y-4 p-2">
       <UserIndex UserIndex={userCounts} />
       <div className="flex flex-col space-y-4 mt-4 bg-white p-3 rounded-sm">
         <div className="flex items-center justify-between">
@@ -120,7 +121,9 @@ export default function RootLayout({
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={getRoleVariant(user.role)}>
+                      <Badge
+                       variant={getRoleVariant(user.role)}
+                      >
                         {user.role}
                       </Badge>
                       <Badge variant={getStatusVariant(user.is_blocked)}>

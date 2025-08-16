@@ -13,7 +13,7 @@ export default function DashboardLayout({
       <AppSidebar />
       <SidebarInset>
         <Navbar />
-       <div className="p-6 h-full bg-[#f6f2f9]">
+       <div className="p-4 h-full bg-[#f6f2f9]">
          {children}
        </div>
       </SidebarInset>

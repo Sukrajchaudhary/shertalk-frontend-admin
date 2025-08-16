@@ -7,12 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  BarChart3,
   Users,
   DollarSign,
-  TrendingUp,
-  Blocks,
-  Cross,
   Users2,
 } from "lucide-react";
 import { DashbaordIndexTypes } from "@/utils/server/getDashboard";
@@ -22,6 +18,7 @@ const Dasboardindex = ({
 }: {
   dashboardIndex: DashbaordIndexTypes;
 }) => {
+  
   return (
     <div className="flex  flex-1 flex-col  gap-4 ">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
