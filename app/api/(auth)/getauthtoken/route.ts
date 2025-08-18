@@ -9,9 +9,11 @@ export async function GET() {
     const currentUser = cookieStore.get("currentUser")?.value || null;
     const userEmail = cookieStore.get("userEmail")?.value || null;
     const userRole = cookieStore.get("userRole")?.value || null;
-    const userFullName = cookieStore.get("userFullName")?.value || null;    
+    const userFullName = cookieStore.get("userFullName")?.value || null;  
+    const accessToken=cookieStore.get("xcsrf-at")?.value||null  
     const responseData = {
       isLoginedStatus: isLoggedIn,
+      accessToken:accessToken,
       profileInfo: {
         username: currentUser || "",
         email: userEmail || "",

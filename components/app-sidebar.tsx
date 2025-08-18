@@ -13,6 +13,10 @@ import {
   Mail,
   ChartCandlestick,
   Video,
+  Folder, // Added for Catalogs
+  FolderTree, // Added for Categories
+  Tag, // Added for Tags
+  Star, // Added for Featured
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -41,47 +45,70 @@ const data = {
   ],
 
   navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-    },
-    // {
-    //   title: "Analytics",
-    //   url: "/dashboard/analytics",
-    //   icon: BarChart3,
-    // },
-    {
-      title: "Portflio",
-      url: "/dashboard/portflio",
-      icon:ChartCandlestick
-    },
-    {
-      title: "Users",
-      url: "/dashboard/users",
-      icon: Users,
-    },
-    // {
-    //   title: "Reports",
-    //   url: "/dashboard/reports",
-    //   icon: FileText,
-    // },
-    {
-      title: "Blogs",
-      url: "/dashboard/blog",
-      icon: FileText,
-    },
-    {
-      title: "Video",
-      url: "/dashboard/calendar",
-      icon:Video
-    },
-    // {
-    //   title: "Messages",
-    //   url: "/dashboard/messages",
-    //   icon: Mail,
-    // },
-  ],
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  // {
+  //   title: "Analytics",
+  //   url: "/dashboard/analytics",
+  //   icon: BarChart3,
+  // },
+  {
+    title: "Portflio",
+    url: "/dashboard/portflio",
+    icon: ChartCandlestick,
+  },
+  {
+    title: "Users",
+    url: "/dashboard/users",
+    icon: Users,
+  },
+  // {
+  //   title: "Reports",
+  //   url: "/dashboard/reports",
+  //   icon: FileText,
+  // },
+  {
+    title: "Blogs",
+    url: "/dashboard/blog",
+    icon: FileText,
+  },
+  {
+    title: "Video",
+    url: "/dashboard/calendar",
+    icon: Video,
+  },
+  // {
+  //   title: "Messages",
+  //   url: "/dashboard/messages",
+  //   icon: Mail,
+  // },
+  {
+    title: "Catalogs",
+    url: "#", // No direct link, as this is a parent category
+    icon: Folder, // Using Folder icon from lucide-react
+    children: [
+      {
+        title: "Categories",
+        url: "/dashboard/catalogs/categories",
+        icon: FolderTree, // Using FolderTree icon from lucide-react
+      },
+      {
+        title: "Tags",
+        url: "/dashboard/catalogs/tags",
+        icon: Tag, // Using Tag icon from lucide-react
+      },
+      {
+        title: "Featured",
+        url: "/dashboard/catalogs/featured",
+        icon: Star, // Using Star icon from lucide-react
+      },
+    ],
+  },
+],
+
   
 };
 
