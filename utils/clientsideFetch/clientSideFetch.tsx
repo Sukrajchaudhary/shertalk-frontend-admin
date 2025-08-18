@@ -1,5 +1,6 @@
 "use client";
 import axios from "axios";
+
 const clientSideFetch = async ({
   url,
   method = "get",
@@ -18,28 +19,41 @@ const clientSideFetch = async ({
   handleLoading?: (status: boolean) => void;
 }) => {
   try {
-    const getLoginUserToken = await axios.post("/api/getUserToken");
-    if (!getLoginUserToken?.data?.Xtoken) return;
+    // Get user token
+    const getToken = async () => {
+      try {
+        const response = await fetch("/api/getauthtoken");
+        if (!response.ok) {
+          return null; 
+        }
+        const data = await response.json();
+        return data|| null;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const token = await getToken();
+    if (!token?.accessToken) return;
+    console.log("access token", token);
     handleLoading && handleLoading(true);
-    if (debug) {
-      console.log(
-        "request sent to URL:",
-        `${process.env.NEXT_PUBLIC_BASE_URL}${url}`
-      );
-    }
 
     const requestOptions: RequestInit = {
       method: method.toUpperCase(),
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${getLoginUserToken?.data?.Xtoken}`,
+        Authorization: `Bearer ${token.accessToken}`,
       },
+      body: body ? JSON.stringify(body) : undefined,
     };
+
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}${url}`,
       requestOptions
-    ); // Fixed typo in the URL
+    );
+
     const data = await res.json();
+
     if (res.ok) {
       return {
         status: 200,
@@ -59,22 +73,12 @@ const clientSideFetch = async ({
       };
     }
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (toast !== "skip") {
-        toast({
-          title: "Oops !",
-          description: error?.response?.data?.message || error.message,
-          variant: "destructive",
-        });
-      }
-    } else {
-      if (toast !== "skip") {
-        toast({
-          title: "Unexpected Error",
-          description: `${error}`,
-          variant: "destructive",
-        });
-      }
+    if (toast !== "skip") {
+      toast({
+        title: "Unexpected Error",
+        description: `${error}`,
+        variant: "destructive",
+      });
     }
   } finally {
     handleLoading && handleLoading(false);

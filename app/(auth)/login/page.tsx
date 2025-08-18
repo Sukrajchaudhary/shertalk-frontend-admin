@@ -65,7 +65,7 @@ export default function LoginPage() {
         });
         return;
       }
-      queryClient.invalidateQueries(["token"]);
+      queryClient.invalidateQueries(['token']);
       setIsLoginedStatus(true);
       toast.success("Login Successfully !");
       router.push("/dashboard");
