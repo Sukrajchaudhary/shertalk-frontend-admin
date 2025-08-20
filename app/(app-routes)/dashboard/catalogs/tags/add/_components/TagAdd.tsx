@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,7 @@ import { useQueryClient } from "@tanstack/react-query";
 const TagAdd = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [isLoadding, setIsLoadding] = useState<boolean>(false);
   const form = useForm<TagFormData>({
     resolver: zodResolver(TagFormSchema),
     defaultValues: {
@@ -46,7 +47,7 @@ const TagAdd = () => {
           .replace(/\s+/g, "-")
           .replace(/[^\w\-]+/g, "");
       }
-
+      setIsLoadding(true);
       const res = await clientSideFetch({
         url: "/blogs/tags/",
         method: "post",
@@ -64,6 +65,8 @@ const TagAdd = () => {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoadding(false);
     }
   };
 
@@ -130,8 +133,12 @@ const TagAdd = () => {
               />
 
               <div className="flex justify-end">
-                <Button className="rounded-full" type="submit">
-                  Create Tag
+                <Button
+                  disabled={isLoadding}
+                  className="rounded-full"
+                  type="submit"
+                >
+                  {isLoadding ? "Please wait" : " Create Tag"}
                 </Button>
               </div>
             </form>

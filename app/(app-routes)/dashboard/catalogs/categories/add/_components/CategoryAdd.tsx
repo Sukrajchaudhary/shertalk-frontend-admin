@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const CategoryAdd = () => {
   const router = useRouter();
-  const queryClient=useQueryClient()
+  const queryClient = useQueryClient()
+  const [isLoadding, setIsLoadding] = useState<boolean>(false)
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(CategoryFormSchema),
     defaultValues: {
@@ -48,8 +49,7 @@ const CategoryAdd = () => {
           .replace(/\s+/g, "-")
           .replace(/[^\w\-]+/g, "");
       }
-
-      // Replace with actual API call
+      setIsLoadding(true)
       const response = await clientSideFetch({
         url: "/blogs/categories/",
         method: "post",
@@ -67,6 +67,9 @@ const CategoryAdd = () => {
       }
     } catch (error) {
       console.error(error);
+    }
+    finally {
+      setIsLoadding(false)
     }
   };
 
@@ -135,8 +138,8 @@ const CategoryAdd = () => {
               />
 
               <div className="flex justify-end">
-                <Button className="rounded-full" type="submit">
-                  Create Category
+                <Button disabled={isLoadding} className="rounded-full" type="submit">
+                  {isLoadding ? "Please wait" : "Create Category"}
                 </Button>
               </div>
             </form>

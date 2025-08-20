@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,13 +21,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { X } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { createFormDataFromObject } from "@/utils/uploadHelpers";
 import { clientSideFetch } from "@/utils/clientsideFetch/clientSideFetch";
 import { toast } from "sonner";
-import { BlogformSchema } from "../../_components/BlogformSchema";
+import { BlogformSchema } from "./BlogformSchema";
 import ReactSelect from "@/components/react-select";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+
 interface ReactQuillProps {
   value: string;
   onChange: (value: string) => void;
@@ -35,6 +37,7 @@ interface ReactQuillProps {
   theme?: "snow" | "bubble";
   modules?: { [key: string]: any };
 }
+
 const ReactQuill: React.FC<ReactQuillProps> = ({
   value,
   onChange,
@@ -43,7 +46,7 @@ const ReactQuill: React.FC<ReactQuillProps> = ({
   modules = {},
 }) => {
   return (
-    <div className="border rounded-md bg-white">
+    <div className="border rounded-md">
       <div className="bg-gray-50 border-b p-2 text-xs text-gray-500">
         Rich Text Editor (ReactQuill simulation)
       </div>
@@ -61,9 +64,13 @@ const ReactQuill: React.FC<ReactQuillProps> = ({
 
 // Zod schema for form validation
 type FormData = z.infer<typeof BlogformSchema>;
-const BlogAdd = () => {
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
+
+interface BlogEditProps {
+  blogId: string;
+}
+
+const BlogEdit: React.FC<BlogEditProps> = ({ blogId }) => {
+  const router = useRouter();
 
   const form = useForm<FormData>({
     resolver: zodResolver(BlogformSchema),
@@ -75,10 +82,52 @@ const BlogAdd = () => {
       image: "",
       state: "",
       author: undefined,
-      category:undefined,
+      category: undefined,
       tags: [],
     },
   });
+
+  // Fetch blog data
+  const { data: blog, isLoading } = useQuery({
+    queryKey: ["blog", blogId],
+    queryFn: async () => {
+      try {
+        const response = await clientSideFetch({
+          url: `/blogs/blogs/${blogId}/`,
+          method: "get",
+          toast: "skip",
+        });
+
+        if (response?.status === 200) {
+          return response.data;
+        } else {
+          toast.error("Failed to fetch blog data");
+          return null;
+        }
+      } catch (error) {
+        console.error("Error fetching blog:", error);
+        toast.error("An error occurred while fetching the blog data");
+        return null;
+      }
+    },
+  });
+
+  // Set form values when blog data is loaded
+  useEffect(() => {
+    if (blog) {
+      form.reset({
+        title: blog.title || "",
+        description: blog.description || "",
+        content: blog.content || "",
+        views: blog.views || 0,
+        image: blog.image || "",
+        state: blog.state || "",
+        author: blog.author?.toString() || undefined,
+        category: blog.category?.id?.toString() || undefined,
+        tags: blog.tags?.map((tag: any) => tag.id.toString()) || [],
+      });
+    }
+  }, [blog, form]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -92,61 +141,67 @@ const BlogAdd = () => {
         state: data.state,
         author: Number(data.author),
         category: Number(data.category),
-        tags: Array.isArray(data.tags) ? data.tags.map(Number) : []
+        tags: Array.isArray(data.tags) ? data.tags.map(Number) : [],
       };
       
       // Check if image is a File object and use FormData
       if (data.image instanceof File) {
         const formData = createFormDataFromObject(blogData);
         const res = await clientSideFetch({
-          url: "/blogs/blogs/",
-          method: "post",
+          url: `/blogs/blogs/${blogId}/`,
+          method: "put",
           body: formData,
           toast: "skip",
         });
         
         if (res?.status === 200) {
-          toast.success("Blog Created Successfully!");
+          toast.success("Blog Updated Successfully!");
+          router.push("/dashboard/blog");
         } else {
-          console.error("Blog creation failed:", res?.data);
-          toast.error("Failed to create blog. Please check the form data.");
+          console.error("Blog update failed:", res?.data);
+          toast.error("Failed to update blog. Please check the form data.");
         }
       } else {
         // Use regular JSON for URL-based images
         const res = await clientSideFetch({
-          url: "/blogs/blogs/",
-          method: "post",
+          url: `/blogs/blogs/${blogId}/`,
+          method: "put",
           body: blogData,
           toast: "skip",
         });
         
         if (res?.status === 200) {
-          toast.success("Blog Created Successfully!");
+          toast.success("Blog Updated Successfully!");
+          router.push("/dashboard/blog");
         } else {
-          console.error("Blog creation failed:", res?.data);
-          toast.error("Failed to create blog. Please check the form data.");
+          console.error("Blog update failed:", res?.data);
+          toast.error("Failed to update blog. Please check the form data.");
         }
       }
     } catch (error) {
-      console.error("Error submitting blog:", error);
-      toast.error("An error occurred while creating the blog.");
+      console.error("Error updating blog:", error);
+      toast.error("An error occurred while updating the blog.");
     }
   };
+
+  if (isLoading) {
+    return <div className="p-8 text-center">Loading blog data...</div>;
+  }
 
   return (
     <div className="mx-auto p-4 bg-gray-50 min-h-screen">
       <Card className="rounded-sm bg-white shadow-sm">
         <CardHeader>
           <CardTitle className="font-semibold text-2xl">
-            Create New Blog Post
+            Edit Blog Post
           </CardTitle>
           <CardDescription>
-            Fill in the details to create a new blog post
+            Update the details of your blog post
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <div className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Title */}
               <FormField
                 control={form.control}
@@ -198,6 +253,8 @@ const BlogAdd = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Content with ReactQuill */}
               <FormField
                 control={form.control}
                 name="content"
@@ -213,77 +270,81 @@ const BlogAdd = () => {
                           theme="snow"
                           modules={{
                             toolbar: [
-                              [{ header: [1, 2, 3, 4, 5, 6, false] }],
                               ["bold", "italic", "underline", "strike"],
-                              [{ color: [] }, { background: [] }],
-                              [{ align: [] }],
                               ["blockquote", "code-block"],
+                              [{ header: 1 }, { header: 2 }],
                               [{ list: "ordered" }, { list: "bullet" }],
-                              ["link", "image"],
+                              [{ script: "sub" }, { script: "super" }],
+                              [{ indent: "-1" }, { indent: "+1" }],
+                              [{ direction: "rtl" }],
+                              [{ size: ["small", false, "large", "huge"] }],
+                              [{ header: [1, 2, 3, 4, 5, 6, false] }],
+                              [{ color: [] }, { background: [] }],
+                              [{ font: [] }],
+                              [{ align: [] }],
                               ["clean"],
+                              ["link", "image", "video"],
                             ],
                           }}
                         />
                       </div>
                     </FormControl>
                     <FormDescription>
-                      The main content of your blog post with rich text
-                      formatting
+                      The main content of your blog post
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Views and Author */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="views"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Views</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          min="0"
-                          {...field}
-                          className="h-11 shadow-none"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Initial view count for the post
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="author"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Author</FormLabel>
-                      <FormControl>
-                        <ReactSelect
-                          url="/auth/list/"
-                          isMulti={false}
-                          form={form}
-                          name="author"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Select the author of this blog post
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              {/* Views */}
+              <FormField
+                control={form.control}
+                name="views"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Views</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        className="h-11 shadow-none"
+                        placeholder="Enter view count"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormDescription>Number of views for this post</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Author */}
+              <FormField
+                control={form.control}
+                name="author"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Author</FormLabel>
+                    <FormControl>
+                      <ReactSelect
+                        name="author"
+                        url="/users/users/"
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select an author"
+                        isClearable
+                      />
+                    </FormControl>
+                    <FormDescription>The author of this blog post</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Image Upload and Post State in same row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Featured Image */}
                 <FormField
                   control={form.control}
                   name="image"
@@ -291,47 +352,30 @@ const BlogAdd = () => {
                     <FormItem>
                       <FormLabel>Featured Image</FormLabel>
                       <FormControl>
-                        <div className="flex flex-col space-y-2">
-                          <ImageUpload
-                            value={field.value instanceof File ? URL.createObjectURL(field.value) : field.value}
-                            onChange={(file) => field.onChange(file)}
-                            maxSize={5 * 1024 * 1024} // 5MB
-                            accept={{
-                              'image/jpeg': [],
-                              'image/png': [],
-                              'image/webp': [],
-                            }}
-                            className="h-44" 
-                          />
-                          {field.value && (
-                            <div className="relative w-24 h-24 mt-2 border rounded-md overflow-hidden">
-                              <img 
-                                src={field.value instanceof File ? URL.createObjectURL(field.value) : field.value} 
-                                alt="Preview" 
-                                className="w-full h-full object-cover"
-                              />
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  field.onChange(null);
-                                }}
-                                className="absolute top-1 right-1 bg-red-500 rounded-full p-1"
-                              >
-                                <X className="h-3 w-3 text-white" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                        <ImageUpload
+                          value={field.value}
+                          onChange={field.onChange}
+                          maxSize={5 * 1024 * 1024} // 5MB
+                          accept={{
+                            'image/jpeg': [],
+                            'image/png': [],
+                            'image/webp': [],
+                          }}
+                          showPreview
+                          previewSize={24}
+                          className="h-40"
+                          onError={(error) => toast.error(error)}
+                        />
                       </FormControl>
                       <FormDescription>
-                        Upload or provide a URL for the featured image
+                        Upload a featured image for your blog post (max 5MB)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* Post State */}
                 <FormField
                   control={form.control}
                   name="state"
@@ -340,23 +384,25 @@ const BlogAdd = () => {
                       <FormLabel>Post State</FormLabel>
                       <FormControl>
                         <ReactSelect
-                          url=""
-                          isMulti={false}
-                          form={form}
                           name="state"
+                          url=""
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select post state"
                         />
                       </FormControl>
                       <FormDescription>
-                        Current publication status of the post
+                        The current state of this blog post
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              
+
               {/* Category and Tags in same row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Category */}
                 <FormField
                   control={form.control}
                   name="category"
@@ -365,19 +411,23 @@ const BlogAdd = () => {
                       <FormLabel>Category</FormLabel>
                       <FormControl>
                         <ReactSelect
-                          url="/blogs/categories/"
-                          isMulti={false}
-                          form={form}
                           name="category"
+                          url="/blogs/categories/"
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select a category"
+                          isClearable
                         />
                       </FormControl>
                       <FormDescription>
-                        Select a category for this blog post
+                        The category this blog post belongs to
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* Tags */}
                 <FormField
                   control={form.control}
                   name="tags"
@@ -386,14 +436,16 @@ const BlogAdd = () => {
                       <FormLabel>Tags</FormLabel>
                       <FormControl>
                         <ReactSelect
-                          url="/blogs/tags/"
-                          isMulti={true}
-                          form={form}
                           name="tags"
+                          url="/blogs/tags/"
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Select tags"
+                          isMulti
                         />
                       </FormControl>
                       <FormDescription>
-                        Select at least one tag for this blog post
+                        Tags related to this blog post
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -402,18 +454,12 @@ const BlogAdd = () => {
               </div>
 
               {/* Submit Button */}
-              <div className="pt-4">
-                <Button
-                  onClick={form.handleSubmit(onSubmit)}
-                  className="w-full md:w-auto cursor-pointer rounded-full"
-                  disabled={form.formState.isSubmitting}
-                >
-                  {form.formState.isSubmitting
-                    ? "Creating Post..."
-                    : "Create Blog"}
+              <div className="flex justify-end">
+                <Button type="submit" className="w-full md:w-auto">
+                  Update Blog Post
                 </Button>
               </div>
-            </div>
+            </form>
           </Form>
         </CardContent>
       </Card>
@@ -421,4 +467,4 @@ const BlogAdd = () => {
   );
 };
 
-export default BlogAdd;
+export default BlogEdit;
