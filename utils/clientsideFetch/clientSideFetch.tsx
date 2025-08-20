@@ -12,7 +12,7 @@ const clientSideFetch = async ({
 }: {
   url: string;
   method?: "get" | "post" | "put" | "delete" | "patch";
-  body?: Record<string, any> | null;
+  body?: Record<string, any> | FormData | null;
   debug?: boolean;
   rawResponse?: boolean;
   toast: any;
@@ -35,16 +35,23 @@ const clientSideFetch = async ({
 
     const token = await getToken();
     if (!token?.accessToken) return;
-    console.log("access token", token);
     handleLoading && handleLoading(true);
 
+    // Prepare headers
+    const headers: HeadersInit = {
+      Authorization: `Bearer ${token.accessToken}`,
+    };
+    
+    // Don't set Content-Type for FormData (browser will set it with boundary)
+    if (!(body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
+    
     const requestOptions: RequestInit = {
       method: method.toUpperCase(),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token.accessToken}`,
-      },
-      body: body ? JSON.stringify(body) : undefined,
+      headers,
+      // Don't stringify FormData
+      body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     };
 
     const res = await fetch(
@@ -54,16 +61,29 @@ const clientSideFetch = async ({
 
     const data = await res.json();
 
+    // Log the response for debugging
+    console.log(`API Response (${url}):`, {
+      status: res.status,
+      data: data
+    });
+    
     if (res.ok) {
       return {
         status: 200,
         data: data,
       };
     } else {
+      // Log the error details
+      console.error(`API Error (${url}):`, {
+        status: res.status,
+        data: data,
+        requestBody: body
+      });
+      
       if (toast !== "skip") {
         toast({
           title: "Oops !",
-          description: data?.error || "Unexpected Error",
+          description: data?.error || data?.detail || "Unexpected Error",
           variant: "destructive",
         });
       }
