@@ -5,7 +5,6 @@ import {
   FileText,
   X,
   CheckCircle,
-  AlertCircle,
   Loader2,
   User,
   CloudUpload,
@@ -15,8 +14,9 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { clientSideFetch } from "@/utils/clientsideFetch/clientSideFetch";
 import Select from "react-select";
-import { useToast } from "@/components/ui/use-toast";
-
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { toast } from "sonner";
 interface DragStates {
   broker: boolean;
   portfolio: boolean;
@@ -54,12 +54,10 @@ const CsvUploader: React.FC = () => {
   });
   const [selectedOption, setSelectedOption] = useState<UserOption | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const { toast } = useToast();
-
   const brokerRef = useRef<HTMLInputElement>(null);
   const portfolioRef = useRef<HTMLInputElement>(null);
-
-  const { data, isPending, error } = useQuery({
+  const [showResult, setShowResult] = useState<boolean>(false);
+  const { data, isPending } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
       try {
@@ -136,26 +134,22 @@ const CsvUploader: React.FC = () => {
 
     if (!validFile) {
       const expectedFormat = type === "broker" ? "XLS/XLSX" : "CSV";
-      toast({
-        title: "❌ Invalid File Type",
+      toast.error(" Invalid File Type", {
         description: `Please upload ${expectedFormat} files only for ${
           type === "broker" ? "Trade Book" : "Transaction History"
         }`,
-        variant: "destructive",
       });
       return;
     }
 
     if (type === "broker") {
       setBrokerFile(validFile);
-      toast({
-        title: "✅ Trade Book Uploaded",
+      toast.success("Trade Book Uploaded", {
         description: `${validFile.name} is ready for processing`,
       });
     } else {
       setPortfolioFile(validFile);
-      toast({
-        title: "✅ Transaction History Uploaded",
+      toast.success("Transaction History Uploaded", {
         description: `${validFile.name} is ready for processing`,
       });
     }
@@ -170,12 +164,10 @@ const CsvUploader: React.FC = () => {
     if (file) {
       if (!isValidFileType(file, type)) {
         const expectedFormat = type === "broker" ? "XLS/XLSX" : "CSV";
-        toast({
-          title: "❌ Invalid File Type",
+        toast.error("Invalid File Type", {
           description: `Please upload ${expectedFormat} files only for ${
             type === "broker" ? "Trade Book" : "Transaction History"
           }`,
-          variant: "destructive",
         });
         e.target.value = "";
         return;
@@ -183,14 +175,12 @@ const CsvUploader: React.FC = () => {
 
       if (type === "broker") {
         setBrokerFile(file);
-        toast({
-          title: "✅ Trade Book Selected",
+        toast.success("Trade Book Selected", {
           description: `${file.name} is ready for processing`,
         });
       } else {
         setPortfolioFile(file);
-        toast({
-          title: "✅ Transaction History Selected",
+        toast.success("Transaction History Selected", {
           description: `${file.name} is ready for processing`,
         });
       }
@@ -201,15 +191,13 @@ const CsvUploader: React.FC = () => {
     if (type === "broker") {
       setBrokerFile(null);
       if (brokerRef.current) brokerRef.current.value = "";
-      toast({
-        title: "🗑️ File Removed",
+      toast.success("File Removed", {
         description: "Trade book file has been removed",
       });
     } else {
       setPortfolioFile(null);
       if (portfolioRef.current) portfolioRef.current.value = "";
-      toast({
-        title: "🗑️ File Removed",
+      toast.success(" File Removed", {
         description: "Transaction history file has been removed",
       });
     }
@@ -232,7 +220,6 @@ const CsvUploader: React.FC = () => {
       const data = await response.json();
       return data?.accessToken || null;
     } catch (error) {
-      console.error("Error getting auth token:", error);
       return null;
     }
   };
@@ -240,47 +227,38 @@ const CsvUploader: React.FC = () => {
   const handleProcessFiles = async () => {
     // Enhanced validation with better user feedback
     if (!selectedOption) {
-      toast({
-        title: "⚠️ User Required",
+      toast.error("User Required", {
         description: "Please select a user from the dropdown",
-        variant: "destructive",
       });
       return;
     }
 
     if (!brokerFile) {
-      toast({
-        title: "⚠️ Trade Book Required",
+      toast.error("Trade Book Required", {
         description: "Please upload your trade book file (XLS/XLSX format)",
-        variant: "destructive",
       });
       return;
     }
 
     if (!portfolioFile) {
-      toast({
-        title: "⚠️ Transaction History Required",
+      toast.warning("Transaction History Required", {
         description: "Please upload your transaction history file (CSV format)",
-        variant: "destructive",
       });
+
       return;
     }
 
     // File type validation
     if (!isValidFileType(brokerFile, "broker")) {
-      toast({
-        title: "❌ Invalid Trade Book Format",
+      toast.warning("Invalid Trade Book Format", {
         description: "Trade book must be an XLS or XLSX file",
-        variant: "destructive",
       });
       return;
     }
 
     if (!isValidFileType(portfolioFile, "portfolio")) {
-      toast({
-        title: "❌ Invalid Transaction History Format",
+      toast.error(" Invalid Transaction History Format", {
         description: "Transaction history must be a CSV file",
-        variant: "destructive",
       });
       return;
     }
@@ -291,61 +269,23 @@ const CsvUploader: React.FC = () => {
       // Get authentication token
       const token = await getAuthToken();
       if (!token) {
-        toast({
-          title: "❌ Authentication Failed",
-          description: "Could not authenticate. Please try logging in again.",
-          variant: "destructive",
-        });
         return;
       }
 
       // Prepare form data with explicit field names and logging
       const formData = new FormData();
-
-      // Log file details before appending
-      console.log("Preparing files for upload:", {
-        brokerFile: {
-          name: brokerFile.name,
-          size: brokerFile.size,
-          type: brokerFile.type,
-        },
-        portfolioFile: {
-          name: portfolioFile.name,
-          size: portfolioFile.size,
-          type: portfolioFile.type,
-        },
-        selectedUser: selectedOption,
-      });
-
       // Append files with exact field names expected by backend
       formData.append("trade_book", brokerFile, brokerFile.name);
       formData.append("transaction_history", portfolioFile, portfolioFile.name);
       formData.append("user", selectedOption.value);
-
-      // Debug: Log FormData contents
-      console.log("FormData entries:");
-      for (const [key, value] of formData.entries()) {
-        if (value instanceof File) {
-          console.log(
-            `${key}: File(${value.name}, ${value.size} bytes, ${value.type})`
-          );
-        } else {
-          console.log(`${key}: ${value}`);
-        }
-      }
-
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
       if (!baseUrl) {
         throw new Error(
           "API base URL is not configured in environment variables"
         );
       }
-
       const apiUrl = `${baseUrl}/portfolio/trade-books/create/`;
-      console.log("Making API request to:", apiUrl);
-
-      toast({
-        title: "🚀 Processing Files",
+      toast.success("Processing Files", {
         description: "Uploading and processing your files...",
       });
 
@@ -356,13 +296,6 @@ const CsvUploader: React.FC = () => {
         },
         body: formData,
       });
-
-      console.log("API Response status:", response.status);
-      console.log(
-        "API Response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
-
       // Handle response
       let responseData;
       const contentType = response.headers.get("content-type");
@@ -372,16 +305,9 @@ const CsvUploader: React.FC = () => {
       } else {
         responseData = await response.text();
       }
-
-      console.log("API Response data:", responseData);
-
       if (response.ok) {
-        toast({
-          title: "🎉 Success!",
-          description: "Your files have been processed successfully",
-        });
-
-        // Reset form state
+        setShowResult(true);
+        toast.success(`SuccessFully created!`);
         setBrokerFile(null);
         setPortfolioFile(null);
         setSelectedOption(null);
@@ -423,29 +349,16 @@ const CsvUploader: React.FC = () => {
             errorDetails = fieldErrors.join("; ");
           }
         }
-
-        console.error("API Error details:", {
-          status: response.status,
-          statusText: response.statusText,
-          data: responseData,
-        });
-
-        toast({
-          title: `❌ Error (${response.status})`,
-          description: errorDetails || errorMessage,
-          variant: "destructive",
-        });
+        // toast.error(`Error (${response.status})`, {
+        //   description: errorDetails || errorMessage,
+        // });
       }
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
-      console.error("Processing error:", error);
-
-      toast({
-        title: "❌ Processing Failed",
-        description: `Network or processing error: ${errorMessage}`,
-        variant: "destructive",
-      });
+      // toast.error("Processing Failed", {
+      //   description: `Network or processing error: ${errorMessage}`,
+      // });
     } finally {
       setIsProcessing(false);
     }
@@ -631,36 +544,51 @@ const CsvUploader: React.FC = () => {
 
         <div className="max-w-6xl mx-auto">
           {/* User Selection */}
-          <div className="bg-white rounded-xl  p-8 mb-8">
-            <div className="flex items-center space-x-3 mb-2">
-              <div className="p-2 bg-blue-100 rounded-sm">
-                <User className="w-4 h-4 text-blue-600" />
+          <div className="bg-white flex justify-between items-center w-full rounded-xl  p-8 mb-8">
+            <div>
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="p-2 bg-blue-100 rounded-sm">
+                  <User className="w-4 h-4 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Select User Account
+                </h2>
               </div>
-              <h2 className="text-xl font-bold text-gray-800">
-                Select User Account
-              </h2>
-            </div>
 
-            <div className="max-w-md">
-              <label
-                htmlFor="user-select"
-                className="block text-sm font-semibold text-gray-700 mb-3"
-              >
-                Choose the user account for this import:
-              </label>
-              <Select
-                id="user-select"
-                value={selectedOption}
-                onChange={setSelectedOption}
-                options={userId}
-                placeholder="Search and select a user..."
-                isSearchable
-                isClearable
-                isLoading={isPending}
-                className="rounded-sm"
-                styles={customSelectStyles}
-                noOptionsMessage={() => "No users found"}
-              />
+              <div className="max-w-md">
+                <label
+                  htmlFor="user-select"
+                  className="block text-sm font-semibold text-gray-700 mb-3"
+                >
+                  Choose the user account for this import:
+                </label>
+                <Select
+                  id="user-select"
+                  value={selectedOption}
+                  onChange={setSelectedOption}
+                  options={userId}
+                  placeholder="Search and select a user..."
+                  isSearchable
+                  isClearable
+                  isLoading={isPending}
+                  className="rounded-sm"
+                  styles={customSelectStyles}
+                  noOptionsMessage={() => "No users found"}
+                />
+              </div>
+            </div>
+            <div>
+              {showResult && (
+                <>
+                  {" "}
+                  <Link href="/dashboard/showportflio">
+                    {" "}
+                    <Button className="bg-green-500 hover:bg-green-600 rounded-3xl">
+                      View Result
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -754,7 +682,7 @@ const CsvUploader: React.FC = () => {
 
             {/* Process Button */}
             <div className="text-center flex justify-start flex-col w-fit">
-              <button
+              <Button
                 onClick={handleProcessFiles}
                 disabled={
                   isProcessing ||
@@ -782,7 +710,7 @@ const CsvUploader: React.FC = () => {
                     <span>Process Files</span>
                   </>
                 )}
-              </button>
+              </Button>
 
               <p className="text-sm text-gray-500 mt-4">
                 {!selectedOption && "Please select a user account first"}
