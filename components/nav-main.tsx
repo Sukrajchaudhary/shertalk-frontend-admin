@@ -48,7 +48,7 @@ export function NavMain({
           
           return (
             <Collapsible key={item.title} asChild defaultOpen={isActive || isChildActive} className="group/collapsible">
-              <SidebarMenuItem>
+              <SidebarMenuItem className="cursor-pointer">
                 {hasChildren ? (
                   <>
                     <CollapsibleTrigger asChild>
