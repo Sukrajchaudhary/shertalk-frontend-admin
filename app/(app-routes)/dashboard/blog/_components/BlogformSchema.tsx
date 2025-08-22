@@ -10,10 +10,7 @@ export const BlogformSchema = z.object({
     .refine((val) => !isNaN(val), {
       message: "Views must be a valid number",
     }),
-  image: z.union([
-    z.instanceof(File, { message: "Image must be a valid file" }),
-    z.string().url("Must be a valid URL")
-  ]),
+  image: z.string().url("Must be a valid URL"),
   state: z.string().min(1, "Please select a state"),
   author: z.number().min(1, "Author ID is required"),
   category: z.number().min(1, "Please select a category"),

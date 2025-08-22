@@ -77,7 +77,7 @@ const data = {
   },
   {
     title: "Video",
-    url: "/dashboard/calendar",
+    url: "/dashboard/video",
     icon: Video,
   },
   // {
